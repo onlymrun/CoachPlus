@@ -1,4 +1,4 @@
-"""Client CRUD routes."""
+"""Client CRUD routes with plan limit enforcement."""
 
 from typing import List
 
@@ -9,6 +9,7 @@ from database import get_db
 from models import User, Client, Session
 from schemas import ClientCreate, ClientUpdate, ClientResponse
 from auth import get_current_user
+from plans import get_max_clients
 
 router = APIRouter(prefix="/api/clients", tags=["clients"])
 
@@ -43,7 +44,22 @@ def create_client(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Create a new client."""
+    """Create a new client. Enforces plan client limits."""
+    max_clients = get_max_clients(current_user.subscription_tier)
+    if max_clients is not None:
+        current_count = db.query(Client).filter(
+            Client.coach_id == current_user.id
+        ).count()
+        if current_count >= max_clients:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    f"You've reached the {max_clients}-client limit on your "
+                    f"{current_user.subscription_tier.capitalize()} plan. "
+                    f"Upgrade to add more clients."
+                ),
+            )
+
     client = Client(
         coach_id=current_user.id,
         full_name=data.full_name,

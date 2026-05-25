@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 # ─── Auth Schemas ───────────────────────────────────────────────────────────
@@ -34,6 +34,29 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+
+class PlanUpdate(BaseModel):
+    plan: str  # starter, pro, agency
+
+
+class UsageInfo(BaseModel):
+    used: int
+    limit: Optional[int] = None
+    remaining: Optional[int] = None
+    percent: Optional[float] = None
+    unlimited: bool = False
+
+
+class UsageResponse(BaseModel):
+    plan: str
+    plan_display_name: str
+    plan_price: int
+    clients: UsageInfo
+    sessions: UsageInfo
+
+    class Config:
+        from_attributes = True
 
 
 # ─── Client Schemas ─────────────────────────────────────────────────────────
@@ -100,7 +123,7 @@ class SessionResponse(BaseModel):
 class GoalProgress(BaseModel):
     goal: str
     progress: str
-    status: str  # on_track, at_risk, completed
+    status: str
 
 
 class EmotionalPattern(BaseModel):
@@ -111,7 +134,7 @@ class EmotionalPattern(BaseModel):
 
 class RiskFlag(BaseModel):
     risk: str
-    severity: str  # low, medium, high
+    severity: str
     suggestion: str
 
 

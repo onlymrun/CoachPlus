@@ -10,6 +10,12 @@ export default function Layout() {
     navigate('/login')
   }
 
+  const planColors = {
+    starter: '#6b7280',
+    pro: '#f59e0b',
+    agency: '#4f46e5',
+  }
+
   return (
     <div className="app-layout">
       <aside className="sidebar">
@@ -25,6 +31,9 @@ export default function Layout() {
           <NavLink to="/clients" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <span className="nav-icon">👥</span> Clients
           </NavLink>
+          <NavLink to="/settings/billing" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <span className="nav-icon">⚙️</span> Settings
+          </NavLink>
         </nav>
 
         <div className="sidebar-footer">
@@ -32,7 +41,12 @@ export default function Layout() {
             <div className="user-avatar">{user?.full_name?.charAt(0) || '?'}</div>
             <div className="user-details">
               <span className="user-name">{user?.full_name}</span>
-              <span className="user-plan">{user?.subscription_tier} plan</span>
+              <span
+                className="plan-badge-sidebar"
+                style={{ backgroundColor: planColors[user?.subscription_tier] || '#6b7280' }}
+              >
+                {user?.subscription_tier?.charAt(0).toUpperCase() + user?.subscription_tier?.slice(1) || 'Starter'}
+              </span>
             </div>
           </div>
           <button className="btn-logout" onClick={handleLogout}>Log out</button>
