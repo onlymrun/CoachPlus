@@ -1,0 +1,36 @@
+# CoachPlus — Render Deployment Configuration
+# Deploy the AI Service first, then the Backend API.
+# Frontend is deployed separately on Netlify.
+
+services:
+  # ── AI Analysis Service (deploy FIRST) ──────────────────────────────────
+  - type: web
+    name: coachplus-ai
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: OPENAI_API_KEY
+        sync: false  # Set this in Render dashboard for real AI analysis
+    healthCheckPath: /health
+
+  # ── Backend API (deploy SECOND) ─────────────────────────────────────────
+  - type: web
+    name: coachplus-api
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: ANALYSIS_SERVICE_URL
+        value: https://coachplus-ai.onrender.com/analyze
+      - key: COACHPLUS_SECRET_KEY
+        generateValue: true
+    healthCheckPath: /api/health

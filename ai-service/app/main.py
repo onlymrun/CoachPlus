@@ -8,10 +8,9 @@ Endpoints:
 - GET /health — Health check
 - GET /openapi.json — OpenAPI specification
 """
-
 from __future__ import annotations
-
 import logging
+import os
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -21,7 +20,6 @@ from app.analyzer import analyze_session
 from app.models import AnalyzeRequest, AnalyzeResponse
 
 # ── Logging ─────────────────────────────────────────────────────────────────
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
@@ -29,7 +27,6 @@ logging.basicConfig(
 logger = logging.getLogger("coachplus-ai")
 
 # ── App Setup ───────────────────────────────────────────────────────────────
-
 app = FastAPI(
     title="CoachPlus AI Analysis Service",
     description="AI-powered session notes analysis for life coaches. "
@@ -81,10 +78,10 @@ async def analyze(request: AnalyzeRequest):
 # ── Entry Point ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", "8080"))
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8080,
-        reload=True,
+        port=port,
         log_level="info",
     )
