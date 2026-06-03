@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../api'
 import { useAuth } from '../context/AuthContext'
-import '../billing.css'
 
 const PLANS = [
   { id: 'starter', name: 'Starter', price: 29, clients: 10, features: ['Up to 10 clients', 'AI session analysis', 'Session prep summaries', 'Email support'] },
@@ -10,7 +9,7 @@ const PLANS = [
 ]
 
 export default function BillingPage() {
-  const { user, login } = useAuth()
+  const { user } = useAuth()
   const [usage, setUsage] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selectedPlan, setSelectedPlan] = useState(null)
@@ -24,7 +23,7 @@ export default function BillingPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const handleUpgrade = async (planId) => {
+  const handleUpgrade = (planId) => {
     setSelectedPlan(planId)
     setShowConfirm(true)
   }
@@ -32,14 +31,9 @@ export default function BillingPage() {
   const confirmUpgrade = async () => {
     setUpgrading(true)
     try {
-      const res = await api.patch('/auth/plan', { plan: selectedPlan })
-      setUsage(null)
-      setLoading(true)
-      // Refresh usage
+      await api.patch('/auth/plan', { plan: selectedPlan })
       const usageRes = await api.get('/auth/usage')
       setUsage(usageRes.data)
-      // Update user context
-      login(user?.email, '')
       setShowConfirm(false)
     } catch (err) {
       alert(err.response?.data?.detail || 'Upgrade failed')
@@ -58,13 +52,12 @@ export default function BillingPage() {
         <h2>Subscription & Billing</h2>
       </div>
 
-      {/* Current Usage */}
       {usage && (
         <div className="card">
           <div className="card-header"><h3>Current Usage</h3></div>
           <div className="usage-stats">
             <div className="usage-item">
-              <div className="usage-label">Plan: <strong className="plan-badge plan-badge-{usage.plan}">{usage.plan_display_name}</strong></div>
+              <div className="usage-label">Plan: <strong>{usage.plan_display_name}</strong></div>
               <div className="usage-label" style={{ marginTop: 4 }}>${usage.plan_price}/mo</div>
             </div>
             <div className="usage-item">
@@ -76,7 +69,7 @@ export default function BillingPage() {
                 />
               </div>
               <div className="usage-numbers">
-                {usage.clients.used} / {usage.clients.unlimited ? '∞' : usage.clients.limit} used
+                {usage.clients.used} / {usage.clients.unlimited ? 'Unlimited' : usage.clients.limit} used
                 {!usage.clients.unlimited && usage.clients.remaining > 0 && (
                   <span className="text-muted"> ({usage.clients.remaining} remaining)</span>
                 )}
@@ -86,7 +79,6 @@ export default function BillingPage() {
         </div>
       )}
 
-      {/* Plan Cards */}
       <h3 className="section-title">Available Plans</h3>
       <div className="plan-cards">
         {PLANS.map((plan) => {
@@ -106,7 +98,7 @@ export default function BillingPage() {
               </div>
               <ul className="plan-features">
                 {plan.features.map((f, i) => (
-                  <li key={i} className="plan-feature">✓ {f}</li>
+                  <li key={i} className="plan-feature">{f}</li>
                 ))}
               </ul>
               <button
@@ -114,14 +106,13 @@ export default function BillingPage() {
                 disabled={isCurrent}
                 onClick={() => handleUpgrade(plan.id)}
               >
-                {isCurrent ? 'Current Plan' : plan.price < (usage?.plan_price || 999) ? 'Downgrade' : 'Upgrade'}
+                {isCurrent ? 'Current Plan' : 'Upgrade'}
               </button>
             </div>
           )
         })}
       </div>
 
-      {/* Confirm Modal */}
       {showConfirm && (
         <div className="modal-overlay" onClick={() => setShowConfirm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -139,9 +130,4 @@ export default function BillingPage() {
       )}
     </div>
   )
-}/home/engine/.bashrc: line 1: syntax error near unexpected token `('
-/home/engine/.bashrc: line 1: `. /etc/profile.d/workload-containment.shn# ~/.bashrc: executed by bash(1) for non-login shells.'
-/home/engine/.bashrc: line 1: syntax error near unexpected token `('
-/home/engine/.bashrc: line 1: `. /etc/profile.d/workload-containment.shn# ~/.bashrc: executed by bash(1) for non-login shells.'
-/home/engine/.bashrc: line 1: syntax error near unexpected token `('
-/home/engine/.bashrc: line 1: `. /etc/profile.d/workload-containment.shn# ~/.bashrc: executed by bash(1) for non-login shells.'
+}
