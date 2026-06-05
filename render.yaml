@@ -1,7 +1,6 @@
 # CoachPlus — Render Blueprint Configuration
-# Deploy all 3 services with one click using Render Blueprint.
-# Deploy order: AI Service → Backend API → Frontend (auto-resolved via fromService)
-
+# Deploy backend + AI service together. Frontend is deployed separately
+# as a Render Static Site (see RENDER_DEPLOY.md).
 services:
   # ── 1. AI Analysis Service ───────────────────────────────────────────────
   - type: web
@@ -14,7 +13,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: OPENAI_API_KEY
-        sync: false  # User sets this manually for real AI analysis; mock mode works without it
+        sync: false
 
   # ── 2. Backend API ───────────────────────────────────────────────────────
   - type: web
@@ -34,15 +33,3 @@ services:
           valueSuffix: /analyze
       - key: COACHPLUS_SECRET_KEY
         generateValue: true
-
-  # ── 3. Frontend Static Site ─────────────────────────────────────────────
-  - type: static_site
-    name: coachplus-frontend
-    buildCommand: npm run build
-    publishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          name: coachplus-api
-          type: web
-          property: host
