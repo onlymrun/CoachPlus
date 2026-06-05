@@ -1,9 +1,9 @@
-# CoachPlus — Render Deployment Configuration
-# Deploy the AI Service first, then the Backend API.
-# Frontend is deployed separately on Netlify.
+# CoachPlus — Render Blueprint Configuration
+# Deploy all 3 services with one click using Render Blueprint.
+# Deploy order: AI Service → Backend API → Frontend (auto-resolved via fromService)
 
 services:
-  # ── AI Analysis Service (deploy FIRST) ──────────────────────────────────
+  # ── 1. AI Analysis Service ───────────────────────────────────────────────
   - type: web
     name: coachplus-ai
     runtime: python
@@ -11,14 +11,12 @@ services:
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.3
-      - key: OPENAI_API_KEY
-        sync: false  # Set this in Render dashboard for real AI analysis
     healthCheckPath: /health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false  # User sets this manually for real AI analysis; mock mode works without it
 
-  # ── Backend API (deploy SECOND) ─────────────────────────────────────────
+  # ── 2. Backend API ───────────────────────────────────────────────────────
   - type: web
     name: coachplus-api
     runtime: python
@@ -26,11 +24,25 @@ services:
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.3
       - key: ANALYSIS_SERVICE_URL
-        value: https://coachplus-ai.onrender.com/analyze
+        fromService:
+          name: coachplus-ai
+          type: web
+          property: host
+          valueSuffix: /analyze
       - key: COACHPLUS_SECRET_KEY
         generateValue: true
-    healthCheckPath: /api/health
+
+  # ── 3. Frontend Static Site ─────────────────────────────────────────────
+  - type: static_site
+    name: coachplus-frontend
+    buildCommand: npm run build
+    publishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: coachplus-api
+          type: web
+          property: host
