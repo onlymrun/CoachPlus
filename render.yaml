@@ -1,6 +1,8 @@
 # CoachPlus — Render Blueprint Configuration
-# Deploy backend + AI service together. Frontend is deployed separately
-# as a Render Static Site (see RENDER_DEPLOY.md).
+# Deploy backend + AI service together via Blueprint.
+# Frontend is deployed manually as a Render Static Site (see RENDER_DEPLOY.md).
+# Build/start commands run from repo root — use full paths for subdirectories.
+
 services:
   # ── 1. AI Analysis Service ───────────────────────────────────────────────
   - type: web
@@ -8,8 +10,8 @@ services:
     runtime: python
     region: oregon
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r ai-service/requirements.txt
+    startCommand: cd ai-service && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: OPENAI_API_KEY
@@ -21,8 +23,8 @@ services:
     runtime: python
     region: oregon
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:
       - key: ANALYSIS_SERVICE_URL
